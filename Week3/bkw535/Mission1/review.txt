@@ -1,0 +1,18 @@
+<리뷰 작성>
+// 마이페이지 리뷰 작성
+POST /{userId}/reviews
+
+Request Header
+Authorization : accessToken (String)
+
+Request Body
+{
+	"content": "내용",
+	"star": 5,
+	"photo_urls": [
+		"url"
+	]
+}
+
+Path variable
+userId

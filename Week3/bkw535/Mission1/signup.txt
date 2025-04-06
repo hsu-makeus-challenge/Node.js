@@ -1,0 +1,28 @@
+<회원가입>
+// 서비스 이용 동의
+POST /users/signup/agreements
+
+Request Body
+{
+	"content": "약관 내용",
+	"essential": true
+}
+
+// 사용자 정보
+POST /users/signup/info
+
+Request Body
+{
+  "name": "홍길동",
+  "gender": "male",
+  "birth": "2000-01-01",
+  "address": "서울시 성북구"
+}
+
+// 선호하는 음식
+POST /users/signup/food-category
+
+Request Body
+{
+	"type": "음식 타입"
+}

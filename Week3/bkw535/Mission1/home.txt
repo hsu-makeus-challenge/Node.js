@@ -1,0 +1,39 @@
+<홈화면>
+// 포인트 조회
+GET /users/{userId}/points
+
+Request Header
+Authorization : accessToken (String)
+
+Path variable
+userId
+
+// 내 미션 조회
+GET /users/{userId}/missions
+
+Request Header
+Authorization : accessToken (String)
+
+Path variable
+userId
+
+QueryString
+status="진행중"|"완료"
+
+// 지역 조회
+GET /regions/{regionId}
+
+Request Header
+Authorization : accessToken (String)
+
+Path variable
+regionId
+
+// 미션 성공 누르기
+PATCH /api/missions/{missionId}/complete
+
+Request Header
+Authorization : accessToken (String)
+
+Path variable
+missionId
