@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int            @id @default(autoincrement()) @db.Int
+  name           String         @db.VarChar(255)
+  email          String         @db.VarChar(255)
+  gender         String         @db.VarChar(255)
+  birth_date     DateTime       @db.Date
+  region         String         @db.VarChar(255)
+  address        String         @db.VarChar(255)
+  total_point    Int?           @default(0)
+  phoneNumber    String         @db.VarChar(255)
+
+  missions       Mission[]
+  reviews        Review[]
+  userFoods      UserFoodDb[]
+
+  @@map("user")
+}
+
+model Store {
+  id            Int           @id @default(autoincrement()) @db.Int
+  store_name    String        @db.VarChar(255)
+  verifcation_id Int          @db.Int
+  open_time     DateTime?     @db.Time
+  close_time    DateTime?     @db.Time
+  address       String        @db.VarChar(255)
+  food_type_id  Int?          @unique
+
+  foodType    FoodType?       @relation(fields: [food_type_id], references: [id])
+  missions    Mission[]
+  reviews     Review[]
+  foods       Food[]
+
+  @@map("store")
+  @@index([food_type_id], map : "fk_store_food_type")
+}
+
+model FoodType {
+  id          Int        @id @default(autoincrement()) @db.Int
+  type        String     @db.VarChar(255)
+  store       Store?     @relation
+
+  userFoodDbs UserFoodDb[]
+
+  @@map("food_type")
+}
+
+model Food {
+  id             Int       @id @default(autoincrement()) @db.Int
+  store_id       Int      
+  price          Int       
+  name           String    @db.VarChar(255)
+
+  store          Store        @relation(fields: [store_id], references: [id])
+
+  @@map("food")
+  @@index([store_id])
+}
+
+model UserFoodDb {
+  user_id         Int      
+  food_id         Int      
+
+  user           User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  foodType       FoodType     @relation(fields: [food_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, food_id])
+  @@map("user_food_db")
+}
+
+model Mission {
+  id          Int       @id @default(autoincrement()) @db.Int
+  status      String    @default("대기중") @db.VarChar(255)
+  content     String    @db.VarChar(255)
+  deadline    DateTime  @db.DateTime
+  created_at  DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @db.DateTime
+  updated_at  DateTime? @updatedAt @db.DateTime
+  store_id    Int       
+  point       Int
+  user_id     Int?      
+
+  store     Store     @relation(fields: [store_id], references: [id])
+  user      User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@map("mission")
+  @@index([store_id], map : "fk_mission_store")
+  @@index([user_id], map : "fk_misson_user")
+}
+
+model Review {
+  id        Int           @id @default(autoincrement()) @db.Int
+  text      String        @db.VarChar(255)
+  rating    Int
+  user_id   Int?        
+  store_id  Int?        
+  created_at DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP")) @db.DateTime
+  updated_at DateTime?     @updatedAt @db.DateTime
+
+  user      User?         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  store     Store?        @relation(fields: [store_id], references: [id], onDelete: Cascade)
+ 
+
+  @@map("review")
+  @@index([user_id], map : "fk_review_user")
+  @@index([store_id], map : "fk_review_store")
+}
