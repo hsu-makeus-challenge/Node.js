@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int         @id @default(autoincrement()) @db.Int
+  name           String         @db.VarChar(45)
+  email          String         @db.VarChar(45)
+  gender         String         @db.VarChar(45)
+  birth          DateTime       @db.Date
+  address        String         @db.VarChar(45)
+  status         String?        @default("active") @db.VarChar(20)
+  point          Int?           @default(0)
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+  updatedAt      DateTime?      @updatedAt @map("updated_at") @db.DateTime
+
+  missions       Mission[]
+  reviews        Review[]
+  reviewReplies    ReviewReply[]
+  inquiries      Inquiry[]
+  inquiryReplies InquiryReply[]
+  notifications  Notification[]
+  pointHistories PointHistory[]
+  pointChanges   PointChange[]
+  foodTypes      FoodType[]
+  useAgrees      UseAgree[]
+
+  @@map("user")
+}
+
+model Region {
+  id        Int    @id @default(autoincrement()) @db.Int
+  name      String    @db.VarChar(45)
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+  updatedAt DateTime? @default(dbgenerated()) @map("updated_at") @db.DateTime
+
+  stores    Store[]
+
+  @@map("region")
+}
+
+model Store {
+  id          Int        @id @default(autoincrement()) @db.Int
+  name        String        @db.VarChar(45)
+  storeNumber Int           @map("store_number") @db.Int
+  openTime    DateTime?     @map("open_time") @db.Time
+  foodTheme   String        @map("food_theme") @db.VarChar(45)
+  address     String        @db.VarChar(45)
+  regionId    Int        @map("region_id")
+
+  region      Region        @relation(fields: [regionId], references: [id])
+  missions    Mission[]
+  reviews     Review[]
+  foods       Food[]
+  images      StoreImage[]
+
+  @@map("store")
+  @@index([regionId])
+}
+
+model StoreImage {
+  id             Int @id @default(autoincrement()) @db.Int
+  storeId        Int @map("store_id")
+  thumbnailImage String @map("thumbnail_image") @db.VarChar(255)
+
+  store          Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("store_image")
+  @@index([storeId])
+}
+
+model FoodCategory {
+  id         Int     @id @default(autoincrement()) @db.Int
+  type       String     @db.VarChar(40)
+
+  foods      Food[]
+  foodTypes  FoodType[]
+
+  @@map("food_category")
+}
+
+model Food {
+  id             Int       @id @default(autoincrement()) @db.Int
+  storeId        Int       @map("store_id")
+  foodCategoryId Int       @map("food_category_id")
+  name           String       @db.VarChar(255)
+  price          Int
+
+  store          Store        @relation(fields: [storeId], references: [id])
+  foodCategory   FoodCategory @relation(fields: [foodCategoryId], references: [id])
+
+  @@map("food")
+  @@index([storeId])
+  @@index([foodCategoryId])
+}
+
+model FoodType {
+  userId         Int       @map("user_id")
+  foodCategoryId Int       @map("food_category_id")
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodCategory   FoodCategory @relation(fields: [foodCategoryId], references: [id], onDelete: Cascade)
+
+  @@id([userId, foodCategoryId])
+  @@map("food_type")
+}
+
+model Mission {
+  id        Int    @id @default(autoincrement()) @db.Int
+  status    String    @default("대기 중") @db.VarChar(45)
+  content   String    @db.VarChar(45)
+  deadline  DateTime  @db.DateTime
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.DateTime
+  storeId   Int    @map("store_id")
+  point     Int
+  userId    Int?   @map("user_id")
+
+  store     Store     @relation(fields: [storeId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("mission")
+  @@index([storeId], map: "fk_mission_store")
+  @@index([userId], map: "fk_user_id")
+}
+
+model Review {
+  id        Int        @id @default(autoincrement()) @db.Int
+  content   String        @db.VarChar(45)
+  star      Int
+  userId    Int?       @map("user_id")
+  storeId   Int?       @map("store_id")
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+  updatedAt DateTime?     @updatedAt @map("updated_at") @db.DateTime
+
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store     Store?        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  photos    ReviewPhoto[]
+  replies   ReviewReply[]
+
+  @@map("review")
+  @@index([userId])
+  @@index([storeId])
+}
+
+model ReviewPhoto {
+  id        Int   @id @default(autoincrement()) @db.Int
+  reviewId  Int   @map("review_id")
+  photoUrl  String?  @map("photo_url") @db.VarChar(255)
+
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@map("review_photo")
+  @@index([reviewId])
+}
+
+model ReviewReply {
+  id        Int    @id @default(autoincrement()) @db.Int
+  reviewId  Int    @map("review_id")
+  userId    Int    @map("user_id")
+  content   String    @db.VarChar(255)
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+
+  review    Review    @relation(fields: [reviewId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("review_reply")
+  @@index([reviewId])
+  @@index([userId])
+}
+
+model Inquiry {
+  id        Int        @id @default(autoincrement()) @db.Int
+  userId    Int        @map("user_id")
+  title     String        @db.VarChar(100)
+  content   String        @db.VarChar(255)
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+
+  user      User          @relation(fields: [userId], references: [id])
+  replies   InquiryReply[]
+
+  @@map("inquiry")
+}
+
+model InquiryReply {
+  id         Int    @id @default(autoincrement()) @db.Int
+  inquiryId  Int    @map("inquiry_id")
+  userId     Int    @map("user_id")
+  content    String    @db.VarChar(255)
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+
+  inquiry    Inquiry   @relation(fields: [inquiryId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+
+  @@map("inquiry_reply")
+  @@index([inquiryId])
+  @@index([userId])
+}
+
+model Notification {
+  id        Int    @id @default(autoincrement()) @db.Int
+  userId    Int    @map("user_id")
+  type      String    @db.VarChar(20)
+  content   String    @db.VarChar(255)
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("notification")
+  @@index([userId])
+}
+
+model UseAgree {
+  id        Int    @id @default(autoincrement()) @db.Int
+  userId    Int    @map("user_id")
+  content   String    @db.VarChar(255)
+  agreedAt  DateTime  @map("agreed_at") @db.DateTime
+  essential Boolean
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("use_agree")
+}
+
+model PointHistory {
+  id        Int    @id @default(autoincrement()) @db.Int
+  userId    Int    @map("user_id")
+  point     Int
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("point_history")
+}
+
+model PointChange {
+  id        Int    @id @default(autoincrement()) @db.Int
+  userId    Int    @map("user_id")
+  change    Int
+  reason    String    @db.VarChar(255)
+  createdAt DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at") @db.DateTime
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("point_change")
+}
