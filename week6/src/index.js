@@ -13,11 +13,11 @@ const app = express();
 app.use(express.json());
 
 // ==========================
-// 📌 루트 경로 추가 (Welcome 페이지)
+// 
 // ==========================
 app.get('/', (req, res) => {
   res.status(200).send(`
-    <h2>🚀 Welcome to UMC Node.js API Server!</h2>
+    <h2> Welcome to UMC Node.js API Server!</h2>
     <p>Available Endpoints:</p>
     <ul>
       <li>POST /api/v1/users</li>
@@ -30,13 +30,13 @@ app.get('/', (req, res) => {
       <li>GET /api/v1/missions/my</li>
       <li>PATCH /api/v1/missions/:missionId/complete</li>
       <li>POST /api/v1/stores/:storeId/missions</li>
-      <li>POST /api/v1/stores</li> <!-- ✅ 새로 추가된 부분 -->
+      <li>POST /api/v1/stores</li> 
     </ul>
   `);
 });
 
 // ==========================
-// 📌 User 관련 API
+//  User 관련 API
 // ==========================
 app.post('/api/v1/users', async (req, res) => {
   try {
@@ -51,7 +51,7 @@ app.post('/api/v1/users', async (req, res) => {
   }
 });
 
-// ➡️ 사용자 정보 조회
+// ➡ 사용자 정보 조회
 app.get('/api/v1/users/:userId', async (req, res) => {
   try {
     const user = await getUser(parseInt(req.params.userId, 10));
@@ -62,7 +62,7 @@ app.get('/api/v1/users/:userId', async (req, res) => {
   }
 });
 
-// ➡️ 음식 선호 카테고리 설정
+// ➡ 음식 선호 카테고리 설정
 app.post('/api/v1/users/:userId/preferences', async (req, res) => {
   try {
     await setPreference(parseInt(req.params.userId, 10), req.body.foodCategoryId);
@@ -73,7 +73,7 @@ app.post('/api/v1/users/:userId/preferences', async (req, res) => {
   }
 });
 
-// ➡️ 사용자 선호 카테고리 목록 조회
+// ➡ 사용자 선호 카테고리 목록 조회
 app.get('/api/v1/users/:userId/preferences', async (req, res) => {
   try {
     const preferences = await getUserPreferencesByUserId(parseInt(req.params.userId, 10));
@@ -85,7 +85,7 @@ app.get('/api/v1/users/:userId/preferences', async (req, res) => {
 });
 
 // ==========================
-// 📌 Mission 및 Review 관련 API
+//  Mission 및 Review 관련 API
 // ==========================
 app.post('/api/v1/stores/:storeId/reviews', postReview);
 app.get('/api/v1/reviews/my', getMyReviews);
@@ -95,11 +95,11 @@ app.patch('/api/v1/missions/:missionId/complete', completeMyMission);
 app.post('/api/v1/stores/:storeId/missions', postMission);
 app.post('/api/v1/missions/:missionId/challenge', challengeMissionHandler);
 
-// ✅ 수정된 부분
+//
 app.post('/api/v1/stores', handleCreateStore); 
 
 // ==========================
-// 📌 Server 실행
+//  Server 실행
 // ==========================
 const PORT = 3000;
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(` Server running on http://localhost:${PORT}`));
