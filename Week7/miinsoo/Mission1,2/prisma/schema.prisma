@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int            @id @default(autoincrement()) @db.Int
+  name           String         @db.VarChar(255)
+  email          String         @db.VarChar(255)
+  gender         String         @db.VarChar(255)
+  birthDate      DateTime        @db.Date @map("birth_date")
+  region         String         @db.VarChar(255)
+  address        String         @db.VarChar(255)
+  totalPoint     Int?           @default(0) @map("total_point")
+  phoneNumber    String         @db.VarChar(255)
+
+  missions       Mission[]
+  reviews        Review[]
+  userFoods      UserFoodDb[]
+
+  @@map("user")
+}
+
+model Store {
+  id            Int           @id @default(autoincrement()) @db.Int
+  storeName     String        @db.VarChar(255) @map("store_name")
+  verifcationId Int           @db.Int @map("verifcation_id")
+  openTime     DateTime?     @db.Time @map("open_time")
+  closeTime    DateTime?     @db.Time @map("close_time")
+  address       String        @db.VarChar(255)
+  foodTypeId  Int?          @unique @map("food_type_id")
+
+  foodType    FoodType?       @relation(fields: [foodTypeId], references: [id])
+  missions    Mission[]
+  reviews     Review[]
+  foods       Food[]
+
+  @@map("store")
+  @@index([foodTypeId], map : "fk_store_food_type")
+}
+
+model FoodType {
+  id          Int        @id @default(autoincrement()) @db.Int
+  type        String     @db.VarChar(255)
+  store       Store?     @relation
+
+  userFoodDbs UserFoodDb[]
+
+  @@map("food_type")
+}
+
+model Food {
+  id             Int          @id @default(autoincrement()) @db.Int
+  storeId       Int           @map("store_id")
+  price          Int       
+  name           String       @db.VarChar(255)
+
+  store          Store        @relation(fields: [storeId], references: [id])
+
+  @@map("food")
+  @@index([storeId])
+}
+
+model UserFoodDb {
+  userId         Int          @map("user_id")
+  foodId         Int          @map("food_id")
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodType       FoodType     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  @@id([userId, foodId])
+  @@map("user_food_db")
+}
+
+model Mission {
+  id          Int       @id @default(autoincrement()) @db.Int
+  status      String    @default("대기중") @db.VarChar(255)
+  content     String    @db.VarChar(255)
+  deadline    DateTime  @db.DateTime
+  createdAt  DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @db.DateTime @map("created_at")
+  updatedAt  DateTime? @updatedAt @db.DateTime @map("updated_at")
+  storeId    Int       @map("store_id")
+  point       Int
+  userId     Int?      @map("user_id")
+
+  store     Store     @relation(fields: [storeId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("mission")
+  @@index([storeId], map : "fk_mission_store")
+  @@index([userId], map : "fk_misson_user")
+}
+
+model Review {
+  id        Int           @id @default(autoincrement()) @db.Int
+  text      String        @db.VarChar(255)
+  rating    Int     
+  userId    Int?          @map("user_id")
+  storeId   Int?          @map("store_id")
+  createdAt DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP")) @db.DateTime @map("created_at")
+  updatedAt DateTime?     @updatedAt @db.DateTime @map("updated_at")
+
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store     Store?        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+ 
+
+  @@map("review")
+  @@index([userId], map : "fk_review_user")
+  @@index([storeId], map : "fk_review_store")
+}
