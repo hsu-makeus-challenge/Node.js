@@ -1,0 +1,15 @@
+# dependency directories
+node_modules/
+
+# dotenv environment variable files
+.env
+.env.*
+
+.vscode/
+
+# prisma
+prisma/dev.db
+.prisma
+prisma/migrations/
+src/generated/prisma
+prisma/src
